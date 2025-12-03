@@ -1,6 +1,7 @@
 import User from "../model/userSchema.js"
 import bcrypt from 'bcrypt'
 import { sinupToken } from "../utils/jwt.js"
+import { sendEmail } from "../utils/sendEmail.js"
 
 
 const cookieOPtion={
@@ -163,19 +164,88 @@ export const getAllUser=async(req,res)=>{
 
 
 export const forgotPass=async(req,res)=>{
+    
     try {
-        const {otp}=req.body;
-        if(!otp){
+        const {email}=req.body;
+        if(!email){
             return res.status(401).json({
-                message: "please fill the otp once"
+                message: "please enter the email"
             })
         }
-        const optUdate=await User.findOne(otp);
-        
+        const user=await User.findOne({email});
+        if(!user){
+            return res.status(401).json({
+                message: "user is not found or email is not found"
+            })
+        }
+        const otp=Math.floor(100000+Math.random()*900000).toString();
+        // const otpexpiretime=
+        user.otp=otp;
+        user.otpexpiretime=Date.now()+10*60*1000;;
+        await user.save();
 
+        await sendEmail({
+            to: user.email,
+            subject: 'your rest passowrd otp',
+            text: `here is your rest opt ${otp} and will expiren in 10min`
+        })
+        res.status(200).json({
+            message: "opt is sent succesufully"
+        })
 
     } catch (error) {
-        
+        console.log("for got pass eroor",error)
+       return res.status(401).json({message: "somethign went wrong while otp is sending"}) 
     }
+}
+
+
+export const resetPassword=async(req,res)=>{
+    try {
+        const {email,otp,password,confomrpassword}=req.body;
+        if(!password || !confomrpassword){
+            return res.status(501).json({
+                message: "please fill the filds"
+            })
+        }
+        // if(otp)
+        // if(opt!==opt)
+        
+        const user=await User.findOne({email});
+        if(!user.otp || !user.otpexpiretime){
+            return res.status(403).json({
+                message: "opt is not generated to the user"
+            })
+        }
+        const now=Date.now();
+        if(user.otpexpiretime <now){
+            return res.status(400).json({
+                message: "opt is expired"
+            })
+        }
+        if(otp!==user.otp){
+            return res.status(401).json({
+                message: "opt is not matcech"
+            })
+        }
+        const salt=10;
+        const hasspaword=await bcrypt.hash(password,salt)
+        user.password=hasspaword;
+        user.otp=undefined;
+        user.otpexpiretime=undefined;
+        await user.save();
+        res.status(200).json({
+            message: "password rest is done"
+        })
+
+
+        
+    } catch (error) {
+        console.log("reset error",error)
+        return res.status(502).json({
+            message: "server error while reset password"
+        })
+    }
+
 }
 //  default {testing,signup,login,updateUser,getAllUser}

@@ -3,13 +3,14 @@ import route from './routes/route.js'
 import dbConnection from './dbConnection/dbConnection.js';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path'
 
 dotenv.config();
 
 const app=express();
 app.use(express.json());
 app.use(cookieParser());  
-
+app.use('/uploads',express.static(path.join("dist","uploads")))
 app.use(route);
 const PORT=9090;
 dbConnection();
