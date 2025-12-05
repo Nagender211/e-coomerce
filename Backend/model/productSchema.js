@@ -31,6 +31,14 @@ const productschema=new mongoose.Schema({
         enum: ["electronics","agriculture","education","sports","dress","male dersse","female dress","general"],
         required: true
     },
-    imgurl: [String]},{timestamps: true})
+    imgurl: [String],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+},
+    {timestamps: true})
 
 export default mongoose.model("Product",productschema)

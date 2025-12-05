@@ -181,7 +181,7 @@ export const forgotPass=async(req,res)=>{
         const otp=Math.floor(100000+Math.random()*900000).toString();
         // const otpexpiretime=
         user.otp=otp;
-        user.otpexpiretime=Date.now()+10*60*1000;;
+        user.otpexpiretime=Date.now()+10*60*1000;
         await user.save();
 
         await sendEmail({
@@ -249,3 +249,93 @@ export const resetPassword=async(req,res)=>{
 
 }
 //  default {testing,signup,login,updateUser,getAllUser}
+
+
+
+
+
+// verify email;
+export const sendVrification=async(req,res)=>{
+    try {
+        // const {}
+        const userId=req.user.id;
+
+        const user=await User.findById(userId);
+        if(!user){
+            return res.json({
+                message: "user is not found"
+            })
+        }
+        const verifyopt=Math.floor(100000+Math.random()*90000).toString();
+        user.verifyopt=verifyopt
+        user.verifyexpire=Date.now()+10*60*1000;
+        await user.save();
+
+        sendEmail({
+            to: user.email,
+            subject: "opt for the verification and post the prodoucts",
+            text: `please enter the opt ${verifyopt} this is expir the 10min`
+        })
+        res.status(200).json({
+            message: "otp is succefuly please check the inbox"
+        })
+
+
+    } catch (error) {
+        console.log("error at the email verifictoi",error);
+        return res.status(501).json({
+            message: "server is error while sending the opt pleae try after a while"
+        })
+    }
+}
+
+
+export const verifyEmailOtp=async(req,res)=>{
+    try {
+        const {verifyopt}=req.body;
+        const userId=req.user.id;
+        if(!userId){
+            return res.status(401).json({
+                message: "userId is not found"
+            })
+        }
+         if(!verifyopt){
+            return res.status(401).json({
+                message: "please enter the opt"
+            })
+        }
+        const user=await User.findById(userId)
+        if(!user){
+            return res.status(401).json({
+                message: "usre is not found"
+            })
+        }
+        const now=Date.now();
+        if(user.verifyexpire<now){
+            return res.status(401).json({
+                message: "otp is expire"
+            })
+        }
+        if(user.verifyopt!==verifyopt){
+            return res.status(401).json({
+                message: "otp is not matchecd"
+            })
+
+        }
+        user.isverfiyed=true;
+        user.verifyopt=undefined;
+        user.verifyexpire=undefined;
+        await user.save()
+        res.status(200).json({
+            message: "verified user enjoy posting the your prodoucts"
+        })
+
+    } catch (error) {
+        console.log("error", error);
+        return res.status(500).json({
+        message: "server error while verifying otp",
+        });
+
+        
+    }
+}

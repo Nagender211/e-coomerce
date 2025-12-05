@@ -11,6 +11,7 @@ const app=express();
 app.use(express.json());
 app.use(cookieParser());  
 app.use('/uploads',express.static(path.join("dist","uploads")))
+app.use('/kycupload',express.static(path.join("dist","kycupload")))
 app.use(route);
 const PORT=9090;
 dbConnection();
