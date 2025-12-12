@@ -7,6 +7,7 @@ import Header from './Componets/Header'
 import Login from './Pages/Login'
 import Register from './Pages/Register'
 import ForgotPass from './Pages/ForgotPass'
+import Otp from './Pages/otp'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -20,6 +21,7 @@ function App() {
           <Route exact path='/login' element={<Login />} />
           <Route exact path='/register' element={<Register />} />
           <Route exact path='/forgot-password' element={<ForgotPass />} />
+          <Route exact path='/reset-password' element={<Otp />} />
         </Routes>
       {/* </BrowserRouter> */}
     </>

@@ -6,7 +6,7 @@ import { sendEmail } from "../utils/sendEmail.js"
 
 const cookieOPtion={
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    maxAge: 1000 * 60 * 60 * 24 * 7, 
     secure: process.env.NODE_ENV === "production",
     sameSite: 'lax'
 }
@@ -34,7 +34,13 @@ export const signup=async(req,res)=>{
     const hashPassword=await bcrypt.hash(password,salt);
     const newUser=await User.create({username,email,password: hashPassword})
     const token=sinupToken({id: newUser._id,email: newUser.email})
-    res.cookie('token',token,cookieOPtion)
+    res.cookie('token',token,cookieOPtion);
+    await sendEmail({
+        to: newUser.email,
+        subject: "Welcone to the ASN!",
+        text: `✨ Welcome to our E-Commerce Store! ${newUser.username} ✨ We’re super excited to have you here! 🛍️💫 Explore, discover, and enjoy a smooth shopping experience filled with awesome products and great vibes. 😄🎉 Feel free to browse around — amazing deals are waiting for you! 🔥🛒 Thank you for visiting, and happy shopping! 💖🌟`
+
+    })
     res.status(201).json({
         message: "singup is susscefuly",
         user: {id: newUser._id,email: newUser.email}
@@ -73,6 +79,12 @@ export const login=async(req,res)=>{
         // const resposive
         const token=sinupToken({id: user._id, email: user.email});
         res.cookie('token',token,cookieOPtion) 
+        await sendEmail({
+        to: user.email,
+        subject: "Welcone to the ASN!",
+        text: `✨ Welcome back to our E-Commerce Store! ${user.username} ✨ We’re super excited to have you here again Time god`
+
+    })
         
         res.status(200).json({
             message: "loggin is succefuly",
@@ -183,7 +195,12 @@ export const forgotPass=async(req,res)=>{
         user.otp=otp;
         user.otpexpiretime=Date.now()+10*60*1000;
         await user.save();
-
+         res.cookie("resetEmail", email, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 10 * 60 * 1000
+        });
         await sendEmail({
             to: user.email,
             subject: 'your rest passowrd otp',
@@ -202,15 +219,17 @@ export const forgotPass=async(req,res)=>{
 
 export const resetPassword=async(req,res)=>{
     try {
-        const {email,otp,password,confomrpassword}=req.body;
+        const {otp,password,confomrpassword}=req.body;
         if(!password || !confomrpassword){
             return res.status(501).json({
                 message: "please fill the filds"
             })
         }
-        // if(otp)
-        // if(opt!==opt)
-        
+            const email = req.cookies.resetEmail;
+            if (!email) {
+            return res.status(400).json({ message: "Reset session expired" });
+            }
+
         const user=await User.findOne({email});
         if(!user.otp || !user.otpexpiretime){
             return res.status(403).json({
@@ -228,12 +247,20 @@ export const resetPassword=async(req,res)=>{
                 message: "opt is not matcech"
             })
         }
+        
         const salt=10;
         const hasspaword=await bcrypt.hash(password,salt)
         user.password=hasspaword;
         user.otp=undefined;
         user.otpexpiretime=undefined;
         await user.save();
+        res.clearCookie("resetEmail");
+        await sendEmail({
+            to: user.email,
+            subject: "Password reset update",
+            text: `${user.username} your password is succesfuly reset thank you`
+        })
+
         res.status(200).json({
             message: "password rest is done"
         })
