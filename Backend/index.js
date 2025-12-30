@@ -13,9 +13,7 @@ app.use(express.json());
 app.use(cookieParser());  
 app.use(cors({
     origin: 'http://localhost:5173',
-    
     credentials: true
-    
 }))
 app.use('/uploads',express.static(path.join("dist","uploads")))
 app.use('/kycupload',express.static(path.join("dist","kycupload")))

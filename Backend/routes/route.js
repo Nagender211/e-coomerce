@@ -5,6 +5,7 @@ import upload from '../utils/upload.js';
 import { createProduct, deletePost, editPost, getAppProducts, getMyProducts } from '../controller/prodouctController.js';
 import { requiredEmailVefry } from '../middleware/verifyEmailMiddle.js';
 import { createKyc } from '../controller/kycController.js';
+import { createOrderInstace, verifyPayment } from '../controller/paymentController.js';
 const route=express.Router();
 route.get('/',requireProtect,testing);
 route.post('/signup', signup);
@@ -22,6 +23,8 @@ route.post('/verify-email/send-otp', requireProtect, sendVrification);
 route.post('/verify-email/conform', requireProtect, verifyEmailOtp);
 // route.post('/kyc-viryfy',requireProtect,requiredEmailVefry,createKyc)
 
+
+
 route.post('/product',requireProtect,requiredEmailVefry,upload.array("images",5),createProduct)
 route.put('/edit-post/:id',requireProtect,requiredEmailVefry,upload.array("images", 5),editPost)
 route.delete('/delete/:id',requireProtect,requiredEmailVefry,deletePost)
@@ -34,4 +37,9 @@ route.get('/my-produts',requireProtect,requiredEmailVefry,getMyProducts)
 route.post('/kyc-sub',requireProtect,requiredEmailVefry,upload.fields([{ name: 'pancard', maxCount: 1 },
     { name: 'aadharcard', maxCount: 1 },
     { name: 'photoimage', maxCount: 1 },]),createKyc)
+
+
+// paymet agate way
+route.post('/oders',requireProtect,createOrderInstace)
+route.post('/verify',requireProtect,verifyPayment)
 export default route;

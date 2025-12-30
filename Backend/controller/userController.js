@@ -32,8 +32,8 @@ export const signup=async(req,res)=>{
     }
     const salt=10;
     const hashPassword=await bcrypt.hash(password,salt);
-    const newUser=await User.create({username,email,password: hashPassword})
-    const token=sinupToken({id: newUser._id,email: newUser.email})
+    const newUser=await User.create({username,email,password: hashPassword});
+    const token=sinupToken({id: newUser._id,email: newUser.email});
     res.cookie('token',token,cookieOPtion);
     await sendEmail({
         to: newUser.email,
@@ -264,9 +264,6 @@ export const resetPassword=async(req,res)=>{
         res.status(200).json({
             message: "password rest is done"
         })
-
-
-        
     } catch (error) {
         console.log("reset error",error)
         return res.status(502).json({
