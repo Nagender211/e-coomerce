@@ -16,7 +16,7 @@ export const createProduct=async(req,res)=>{
         }
         const imgurl=files.map((file)=>{
             const filename = file.filename || file.path.split("\\").pop().split("/").pop();
-             return `/uploads/${filename}`;
+             return `/uploads/${filename}.png`;
 
         })
         

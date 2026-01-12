@@ -22,6 +22,7 @@ function App() {
           <Route exact path='/register' element={<Register />} />
           <Route exact path='/forgot-password' element={<ForgotPass />} />
           <Route exact path='/reset-password' element={<Otp />} />
+          
         </Routes>
       {/* </BrowserRouter> */}
     </>

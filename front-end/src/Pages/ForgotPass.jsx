@@ -1,34 +1,189 @@
-// import { memo } from 'react';
-
 import { useState } from "react";
 import { api } from "../utlis/api";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const ForgotPass = () => {
-  const [email,setEmail]=useState('')
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleEmail=async(e)=>{
-    // console.log("hello")
+  const handleEmail = (e) => {
     setEmail(e.target.value);
+    setError("");
+  };
 
-  }
-  const handleForgot=async(e)=>{
+  const handleForgot = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
     try {
-      const respos=await api.post('/forgot-otp',{email})
-      console.log("password sent",respos.status);
-      
+      const respos = await api.post("/forgot-otp", { email });
+      console.log("password sent", respos.status);
+      setSuccess(true);
+      setTimeout(() => setEmail(""), 2000);
     } catch (error) {
-      console.log("error while sending the otp",error)
+      console.log("error while sending the otp", error);
+      setError("Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
 
+  if (success) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center animate-fade-in">
+            <div className="mb-4 flex justify-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <CheckCircle className="text-green-600" size={32} />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Email Sent!</h2>
+            <p className="text-gray-600 mb-6">
+              We've sent a password reset OTP to your email. Check your inbox and follow the instructions.
+            </p>
+            <Link
+              to="/reset-password"
+              className="inline-block bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+            >
+              Back to OTP page
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
+
   return (
-    <div>
-        <form onSubmit={handleForgot} className="flex flex-col gap-4">
-            <label>email</label>
-            <input placeholder="please enter your email id" type="email" name="email" required value={email} onChange={handleEmail} />
-            <button type="submit" className="cursor-pointer" >Submit Your opt</button>
-        </form>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center p-4">
+      {/* Background Decorations */}
+      <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-0 right-0 w-96 h-96 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+      <div className="max-w-md w-full relative z-10">
+        {/* Header */}
+        <Link
+          to="/reset-password"
+          className="inline-flex items-center gap-2 text-gray-600 hover:text-indigo-600 transition-colors duration-300 mb-8"
+        >
+          <ArrowLeft size={20} />
+          <span className="font-medium">Back to otp page</span>
+        </Link>
+
+        {/* Form Card */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20 animate-fade-in">
+          {/* Title */}
+          <div className="mb-8 text-center">
+            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <Mail className="text-white" size={24} />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset Password</h1>
+            <p className="text-gray-600 text-sm">
+              Enter your email to receive a password reset OTP
+            </p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleForgot} className="space-y-6">
+            {/* Email Input */}
+            <div className="relative">
+              <label className="block text-sm font-semibold text-gray-800 mb-2">
+                Email Address
+              </label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-600 group-focus-within:text-purple-600 transition-colors duration-300" size={20} />
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={handleEmail}
+                  required
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-indigo-600 focus:outline-none transition-all duration-300 bg-gray-50 focus:bg-white text-gray-900 placeholder-gray-500 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm animate-shake">
+                {error}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 relative overflow-hidden"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Mail size={20} />
+                  <span>Send Reset OTP</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Footer */}
+          <p className="text-center text-gray-600 text-sm mt-6">
+            Remember your password?{" "}
+            <Link
+              to="/login"
+              className="text-indigo-600 hover:text-purple-600 font-semibold transition-colors duration-300"
+            >
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-10px); }
+          75% { transform: translateX(10px); }
+        }
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 };
