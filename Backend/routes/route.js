@@ -1,8 +1,8 @@
 import express from 'express'
-import {testing,signup,login,updateUser,getAllUser, deleteUser, loggout, forgotPass, resetPassword, sendVrification, verifyEmailOtp} from '../controller/userController.js'
+import {testing,signup,login,updateUser,getAllUser, deleteUser, loggout, forgotPass, resetPassword, sendVrification, verifyEmailOtp,GetMe} from '../controller/userController.js'
 import { requireProtect } from '../middleware/auth.js';
 import upload from '../utils/upload.js';
-import { createProduct, deletePost, editPost, getAppProducts, getMyProducts } from '../controller/prodouctController.js';
+import { createProduct, deletePost, editPost, getAppProducts, getMyProducts, getSinglePost } from '../controller/prodouctController.js';
 import { requiredEmailVefry } from '../middleware/verifyEmailMiddle.js';
 import { createKyc } from '../controller/kycController.js';
 import { createOrderInstace, verifyPayment } from '../controller/paymentController.js';
@@ -10,6 +10,7 @@ const route=express.Router();
 route.get('/',requireProtect,testing);
 route.post('/signup', signup);
 route.post('/login',login);
+route.get('/me',requireProtect,GetMe)
 route.put('/update/:id',requireProtect,updateUser);
 route.delete('/user/:id',requireProtect,deleteUser);
 route.post('/logout',requireProtect,loggout)
@@ -25,13 +26,12 @@ route.post('/verify-email/conform', requireProtect, verifyEmailOtp);
 
 
 
-route.post('/product',requireProtect,requiredEmailVefry,upload.array("images",5),createProduct)
-route.put('/edit-post/:id',requireProtect,requiredEmailVefry,upload.array("images", 5),editPost)
-route.delete('/delete/:id',requireProtect,requiredEmailVefry,deletePost)
+route.post('/product',requireProtect,requiredEmailVefry,createProduct)
+route.put('/edit-post/:id',requireProtect,editPost)
+route.delete('/delete/:id',requireProtect,deletePost)
 route.get('/all-products',getAppProducts);
 route.get('/my-produts',requireProtect,requiredEmailVefry,getMyProducts)
-
-
+route.get('/product/:id',getSinglePost)
 
 
 route.post('/kyc-sub',requireProtect,requiredEmailVefry,upload.fields([{ name: 'pancard', maxCount: 1 },

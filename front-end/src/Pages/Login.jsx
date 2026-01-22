@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useState } from "react";
 import { Link,  useNavigate } from "react-router-dom";
 import { api } from "../utlis/api";
+import { checkAuth } from "../utlis/auth";
 
-const Login = () => {
+const Login = ({setUser}) => {
     const [login,setLogin]=useState(false)
     const [email,setEmail]=useState('');
     const [password,setPassword]=useState('');
@@ -24,17 +25,13 @@ const Login = () => {
             const respos=await api.post('/login',{email,password});
             console.log('status:', respos.status);      
             console.log("data",respos.data)
-            // if(respos)
-           if(respos.data){
-            setLogin(true)
-            useNav('/')
-           }
+            const checkUser=await checkAuth()
+            setUser(checkUser)
+            // useNav('/')
             
         } catch (error) {
             console.log("erro",error)
         }
-
-
     }
 
   return (
@@ -50,7 +47,7 @@ const Login = () => {
         <button type="submit" className="bg-blue-600 rounded-2xl px-12 py-6 w-full cursor-pointer">Login</button>
 
       </form>
-      <p>Dont have account please <Link to={'/rigster'} className="underline text-blue-500 cursor-pointer">registre here</Link></p>
+      <p>Dont have account please <Link to={'/register'} className="underline text-blue-500 cursor-pointer">registre here</Link></p>
       
     </div>
   );

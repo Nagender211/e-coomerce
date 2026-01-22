@@ -363,3 +363,15 @@ export const verifyEmailOtp=async(req,res)=>{
         
     }
 }
+
+export const GetMe=async(req,res)=>{
+    try {
+        const user=await User.findById(req.user.id).select("-password");
+        res.status(200).json({
+            message: "yes your there",
+            user: user
+        })
+    } catch (error) {
+        console.log("error while getting the me user",error)
+    }
+}
