@@ -24,6 +24,17 @@ const mongoShema=mongoose.Schema({
     },
     otpexpiretime: {
         type: Date,
+    },
+    isverfiyed: {
+        type: Boolean,
+        default: false,
+
+    },
+    verifyopt: {
+        type: String
+    },
+    verifyexpire: {
+        type: Date
     }
 });
 export default mongoose.model("User",mongoShema)

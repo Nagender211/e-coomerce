@@ -1,11 +1,12 @@
 import User from "../model/userSchema.js"
 import bcrypt from 'bcrypt'
 import { sinupToken } from "../utils/jwt.js"
+import { sendEmail } from "../utils/sendEmail.js"
 
 
 const cookieOPtion={
     httpOnly: true,
-    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    maxAge: 1000 * 60 * 60 * 24 * 7, 
     secure: process.env.NODE_ENV === "production",
     sameSite: 'lax'
 }
@@ -31,9 +32,15 @@ export const signup=async(req,res)=>{
     }
     const salt=10;
     const hashPassword=await bcrypt.hash(password,salt);
-    const newUser=await User.create({username,email,password: hashPassword})
-    const token=sinupToken({id: newUser._id,email: newUser.email})
-    res.cookie('token',token,cookieOPtion)
+    const newUser=await User.create({username,email,password: hashPassword});
+    const token=sinupToken({id: newUser._id,email: newUser.email});
+    res.cookie('token',token,cookieOPtion);
+    await sendEmail({
+        to: newUser.email,
+        subject: "Welcone to the ASN!",
+        text: `✨ Welcome to our E-Commerce Store! ${newUser.username} ✨ We’re super excited to have you here! 🛍️💫 Explore, discover, and enjoy a smooth shopping experience filled with awesome products and great vibes. 😄🎉 Feel free to browse around — amazing deals are waiting for you! 🔥🛒 Thank you for visiting, and happy shopping! 💖🌟`
+
+    })
     res.status(201).json({
         message: "singup is susscefuly",
         user: {id: newUser._id,email: newUser.email}
@@ -72,6 +79,12 @@ export const login=async(req,res)=>{
         // const resposive
         const token=sinupToken({id: user._id, email: user.email});
         res.cookie('token',token,cookieOPtion) 
+        await sendEmail({
+        to: user.email,
+        subject: "Welcone to the ASN!",
+        text: `✨ Welcome back to our E-Commerce Store! ${user.username} ✨ We’re super excited to have you here again Time god`
+
+    })
         
         res.status(200).json({
             message: "loggin is succefuly",
@@ -163,19 +176,202 @@ export const getAllUser=async(req,res)=>{
 
 
 export const forgotPass=async(req,res)=>{
+    
     try {
-        const {otp}=req.body;
-        if(!otp){
+        const {email}=req.body;
+        if(!email){
             return res.status(401).json({
-                message: "please fill the otp once"
+                message: "please enter the email"
             })
         }
-        const optUdate=await User.findOne(otp);
+        const user=await User.findOne({email});
+        if(!user){
+            return res.status(401).json({
+                message: "user is not found or email is not found"
+            })
+        }
+        const otp=Math.floor(100000+Math.random()*900000).toString();
+        // const otpexpiretime=
+        user.otp=otp;
+        user.otpexpiretime=Date.now()+10*60*1000;
+        await user.save();
+         res.cookie("resetEmail", email, {
+            httpOnly: true,
+            sameSite: "lax",
+            secure: process.env.NODE_ENV === "production",
+            maxAge: 10 * 60 * 1000
+        });
+        await sendEmail({
+            to: user.email,
+            subject: 'your rest passowrd otp',
+            text: `here is your rest opt ${otp} and will expiren in 10min`
+        })
+        res.status(200).json({
+            message: "opt is sent succesufully"
+        })
+
+    } catch (error) {
+        console.log("for got pass eroor",error)
+       return res.status(401).json({message: "somethign went wrong while otp is sending"}) 
+    }
+}
+
+
+export const resetPassword=async(req,res)=>{
+    try {
+        const {otp,password,confomrpassword}=req.body;
+        if(!password || !confomrpassword){
+            return res.status(501).json({
+                message: "please fill the filds"
+            })
+        }
+            const email = req.cookies.resetEmail;
+            if (!email) {
+            return res.status(400).json({ message: "Reset session expired" });
+            }
+
+        const user=await User.findOne({email});
+        if(!user.otp || !user.otpexpiretime){
+            return res.status(403).json({
+                message: "opt is not generated to the user"
+            })
+        }
+        const now=Date.now();
+        if(user.otpexpiretime <now){
+            return res.status(400).json({
+                message: "opt is expired"
+            })
+        }
+        if(otp!==user.otp){
+            return res.status(401).json({
+                message: "opt is not matcech"
+            })
+        }
         
+        const salt=10;
+        const hasspaword=await bcrypt.hash(password,salt)
+        user.password=hasspaword;
+        user.otp=undefined;
+        user.otpexpiretime=undefined;
+        await user.save();
+        res.clearCookie("resetEmail");
+        await sendEmail({
+            to: user.email,
+            subject: "Password reset update",
+            text: `${user.username} your password is succesfuly reset thank you`
+        })
+
+        res.status(200).json({
+            message: "password rest is done"
+        })
+    } catch (error) {
+        console.log("reset error",error)
+        return res.status(502).json({
+            message: "server error while reset password"
+        })
+    }
+
+}
+//  default {testing,signup,login,updateUser,getAllUser}
+
+
+
+
+
+// verify email;
+export const sendVrification=async(req,res)=>{
+    try {
+        // const {}
+        const userId=req.user.id;
+
+        const user=await User.findById(userId);
+        if(!user){
+            return res.json({
+                message: "user is not found"
+            })
+        }
+        const verifyopt=Math.floor(100000+Math.random()*90000).toString();
+        user.verifyopt=verifyopt
+        user.verifyexpire=Date.now()+10*60*1000;
+        await user.save();
+
+        sendEmail({
+            to: user.email,
+            subject: "opt for the verification and post the prodoucts",
+            text: `please enter the opt ${verifyopt} this is expir the 10min`
+        })
+        res.status(200).json({
+            message: "otp is succefuly please check the inbox"
+        })
 
 
     } catch (error) {
+        console.log("error at the email verifictoi",error);
+        return res.status(501).json({
+            message: "server is error while sending the opt pleae try after a while"
+        })
+    }
+}
+
+
+export const verifyEmailOtp=async(req,res)=>{
+    try {
+        const {verifyopt}=req.body;
+        const userId=req.user.id;
+        if(!userId){
+            return res.status(401).json({
+                message: "userId is not found"
+            })
+        }
+         if(!verifyopt){
+            return res.status(401).json({
+                message: "please enter the opt"
+            })
+        }
+        const user=await User.findById(userId)
+        if(!user){
+            return res.status(401).json({
+                message: "usre is not found"
+            })
+        }
+        const now=Date.now();
+        if(user.verifyexpire<now){
+            return res.status(401).json({
+                message: "otp is expire"
+            })
+        }
+        if(user.verifyopt!==verifyopt){
+            return res.status(401).json({
+                message: "otp is not matchecd"
+            })
+
+        }
+        user.isverfiyed=true;
+        user.verifyopt=undefined;
+        user.verifyexpire=undefined;
+        await user.save()
+        res.status(200).json({
+            message: "verified user enjoy posting the your prodoucts"
+        })
+
+    } catch (error) {
+        console.log("error", error);
+        return res.status(500).json({
+        message: "server error while verifying otp",
+        });
+
         
     }
 }
-//  default {testing,signup,login,updateUser,getAllUser}
+
+export const GetMe=async(req,res)=>{
+    try {
+        const user=await User.findById(req.user.id).select("-password");
+        res.status(200).json({
+            message: "yes your there",
+            user: user
+        })
+    } catch (error) {
+        console.log("error while getting the me user",error)
+    }
+}
