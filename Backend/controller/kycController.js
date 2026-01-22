@@ -18,7 +18,7 @@ export const createKyc=async(req,res)=>{
                 message: "Please upload both pancard and aadharcard files",
             });
             }
-             const pancardFile = req.files.pancard[0];
+            const pancardFile = req.files.pancard[0];
             const aadharFile = req.files.aadharcard[0];
             const photoFile = req.files.photoimage ? req.files.photoimage[0] : null;
             const pancardPath = pancardFile.path || `kycupload/${pancardFile.filename}`;

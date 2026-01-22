@@ -2,7 +2,7 @@ import { verifyToken } from "../utils/jwt.js";
 
 export const requireProtect = (req, res, next) => {
   try {
-    console.log("Cookies received:", req.cookies);  // ADD THIS
+    console.log("Cookies received:", req.cookies);  
     const token = req.cookies?.token;
 
     if (!token) {

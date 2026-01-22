@@ -8,22 +8,22 @@ export const createProduct=async(req,res)=>{
                 message: "please fill the all the deaties"
             })
         }
-        const files=req.files;
-        if(!req.files || !req.files.length===0){
-             return res.status(401).json({
-                message: "please uploadt the images"
-            })
-        }
-        const imgurl=files.map((file)=>{
-            const filename = file.filename || file.path.split("\\").pop().split("/").pop();
-             return `/uploads/${filename}`;
+        // const files=req.files;
+        // if(!req.files || !req.files.length===0){
+        //      return res.status(401).json({
+        //         message: "please uploadt the images"
+        //     })
+        // }
+        // const imgurl=files.map((file)=>{
+        //     const filename = file.filename || file.path.split("\\").pop().split("/").pop();
+        //      return `/uploads/${filename}`;
 
-        })
+        // })
         
-        const product=await Product.create({createdBy: req.user.id,productname,price,description,rating,brand,categeroy,imgurl})
+        const product=await Product.create({createdBy: req.user.id,productname,price,description,rating,brand,categeroy})
         res.status(201).json({
             message: "product is created",
-            filename: imgurl,
+            
             data: product
         })
 
@@ -46,19 +46,19 @@ export const editPost=async(req,res)=>{
                 message: "please fill the all the deaties"
             })
         }
-        const files=req.files;
-        if(!req.files || !req.files.length===0){
-             return res.status(401).json({
-                message: "please uploadt the images"
-            })
-        }
-        const imgurl=files.map((file)=>{
-            const filename = file.filename || file.path.split("\\").pop().split("/").pop();
-             return `/uploads/${filename}`;
+        // const files=req.files;
+        // if(!req.files || !req.files.length===0){
+        //      return res.status(401).json({
+        //         message: "please uploadt the images"
+        //     })
+        // }
+        // const imgurl=files.map((file)=>{
+        //     const filename = file.filename || file.path.split("\\").pop().split("/").pop();
+        //      return `/uploads/${filename}`;
 
-        })
+        // })
         
-        const product=await Product.findByIdAndUpdate(id,{productname,price,description,rating,brand,categeroy,imgurl},{new: true,runValidators: true})
+        const product=await Product.findByIdAndUpdate(id,{productname,price,description,rating,brand,categeroy},{new: true,runValidators: true})
         res.status(201).json({
             message: "product is created",
             filename: imgurl,
@@ -136,4 +136,24 @@ export const getMyProducts = async(req,res)=>{
       message: "server error while getting the your produts"
     });
   }
+}
+
+
+export const getSinglePost=async(req,res)=>{
+    try {
+        const {id}=req.params;
+        const productsingel=await Product.findById(id)
+        if(!productsingel){
+            return res.status(401).json({
+                message: "product id is missing"
+            })
+        }
+        res.status(200).json({
+            message: "succesfuly data is came",
+            data: productsingel
+        })
+    } catch (error) {
+        console.log("error while getigg the product singel",error)
+        
+    }
 }

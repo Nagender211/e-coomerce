@@ -31,7 +31,7 @@ const productschema=new mongoose.Schema({
         enum: ["electronics","agriculture","education","sports","dress","male dersse","female dress","general"],
         required: true
     },
-    imgurl: [String],
+    // imgurl: [String],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
